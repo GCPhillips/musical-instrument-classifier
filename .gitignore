@@ -245,3 +245,10 @@ output.json
 plots/**
 
 data/IRMAS-TrainingData.zip
+data/IRMAS-TestingData-Part1.zip
+data/IRMAS-TestingData-Part2.zip
+data/IRMAS-TestingData-Part3.zip
+data/IRMAS-TrainingData/
+data/IRMAS-TestingData-Part1/
+data/IRMAS-TestingData-Part2/
+data/IRMAS-TestingData-Part3/

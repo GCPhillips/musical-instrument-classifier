@@ -6,7 +6,8 @@ from torch.utils.data import Dataset, DataLoader
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-SAMPLES = (44100 * 3) - 1  # 3 seconds at 44.1 khz, one less sample
+SAMPLE_RATE = 44100
+SAMPLES = (SAMPLE_RATE * 3) - 1  # 3 seconds at 44.1 khz, one less sample
 
 class InstrumentDataset(Dataset):
     def __init__(self, irmas_tracks, track_ids):

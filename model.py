@@ -3,12 +3,10 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
-import torchaudio.transforms
-from torchaudio.transforms import Spectrogram
 
 
 class InstrumentClassifier(nn.Module):
-    def __init__(self, d_input=441, d_model=256, d_internal=128, num_classes=11, num_layers=1):
+    def __init__(self, d_input=4410, d_model=256, d_internal=128, num_classes=11, num_layers=1):
         """
         :param d_input: the dimensions of the classifier input
         :param d_model: the dimensions of the input and output of the transformer
@@ -30,7 +28,6 @@ class InstrumentClassifier(nn.Module):
     def forward(self, x):
         # return self.sigmoid(self.prediction(self.layers(x)))
         return self.prediction(self.layers(x))
-
 
 
 class TransformerLayer(nn.Module):

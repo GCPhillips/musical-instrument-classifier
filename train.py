@@ -14,13 +14,19 @@ def train_irmas(tracks, splits):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     d_input = SAMPLES
     d_model = 4410
-    epochs = 50
+    d_internal = 512
+    epochs = 10
+    num_layers = 3
+    lr = 1e-5
 
     train_data = load_data(tracks, splits['train'])
-    model = InstrumentClassifier(d_input=d_input, d_model=d_model, num_layers=3)
+    model = InstrumentClassifier(d_input=d_input,
+                                 d_model=d_model,
+                                 d_internal=d_internal,
+                                 num_layers=num_layers)
     model = model.to(device)
     loss = torch.nn.BCEWithLogitsLoss()
-    optim = torch.optim.Adam(model.parameters(), lr=1e-5)
+    optim = torch.optim.Adam(model.parameters(), lr=lr)
     losses = []
 
     for epoch in range(epochs):
@@ -52,7 +58,7 @@ def test_irmas(model, tracks, splits):
     plt.show()
 
 
-if __name__ == '__main__':
+def main():
     irmas = mirdata.initialize('irmas', data_home='./data')
 
     # .gitkeep file should already be there. Download data if it doesn't exist.
@@ -64,6 +70,10 @@ if __name__ == '__main__':
     tracks = irmas.load_tracks()
     model = train_irmas(tracks, splits)
     now = datetime.now()
-    # filename = now.strftime("mi_classifier_%m-%d-%y_%H%M.th")
-    # save_model(model, filename)
+    filename = now.strftime("mi_classifier_%m-%d-%y_%H%M.th")
+    save_model(model, filename)
     test_irmas(model, tracks, splits)
+
+
+if __name__ == '__main__':
+    main()

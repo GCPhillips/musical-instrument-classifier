@@ -3,30 +3,34 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
+import torchaudio.transforms
+from torchaudio.transforms import Spectrogram
 
 
 class InstrumentClassifier(nn.Module):
-    def __init__(self, seq_length=441, d_model=256, d_internal=128, num_classes=11, num_layers=1):
+    def __init__(self, d_input=441, d_model=256, d_internal=128, num_classes=11, num_layers=1):
         """
-        :param seq_length: the window size; total amount of samples to feed into the network
+        :param d_input: the dimensions of the classifier input
         :param d_model: the dimensions of the input and output of the transformer
         :param d_internal: the dimensions of the hidden layer in self-attention
         :param num_classes: the number of classes to predict (i.e. the number of musical instruments to classify)
         :param num_layers: the number of transformer layers to use
         """
         super().__init__()
-        self.seq_length = seq_length
+        self.seq_length = d_input
 
         layers = OrderedDict()
-        layers['initial'] = nn.Linear(seq_length, d_model)
+        layers['initial'] = nn.Linear(d_input, d_model)
         for i in range(num_layers):
             layers[f'transformer_layer_{str(i)}'] = TransformerLayer(d_model, d_internal)
         self.layers = nn.Sequential(layers)
-        self.softmax = nn.Softmax(dim=1)
         self.prediction = nn.Linear(d_model, num_classes)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        return self.softmax(self.prediction(self.layers(x)))
+        # return self.sigmoid(self.prediction(self.layers(x)))
+        return self.prediction(self.layers(x))
+
 
 
 class TransformerLayer(nn.Module):

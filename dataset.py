@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
+SAMPLES = (44100 * 3) - 1  # 3 seconds at 44.1 khz, one less sample
 
 class InstrumentDataset(Dataset):
     def __init__(self, irmas_tracks, track_ids):
@@ -17,12 +18,16 @@ class InstrumentDataset(Dataset):
             audio = track.audio[0]
             if len(audio) == 2:
                 audio = stereo_to_mono(audio)
+            if audio.shape[0] > SAMPLES:
+                audio = audio[0:SAMPLES]
             label = np.zeros(len(INST_DICT))
             for instr in track.instrument:
                 label[INST_DICT.index(instr)] = 1.0
             label = torch.from_numpy(label)
             label = label.to(device)
-            self.tracks.append(torch.from_numpy(audio))
+            audio = torch.from_numpy(audio)
+            audio = audio.to(device)
+            self.tracks.append(audio)
             self.labels.append(label)
 
     def __len__(self):

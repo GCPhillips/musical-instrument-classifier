@@ -1,41 +1,55 @@
 import os
-import random
+from datetime import datetime
 
 import mirdata
 import torch.cuda
 from model import InstrumentClassifier
-from dataset import load_data
+from dataset import load_data, SAMPLES
+import matplotlib.pyplot as plt
+
+from utils import save_model
 
 
-def train_irmas(dataset):
+def train_irmas(tracks, splits):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    seq_length = 44100
-    random_samples = 100
-    epochs = 15
+    d_input = SAMPLES
+    d_model = 4410
+    epochs = 50
 
-    splits = dataset.get_track_splits()
-    tracks = dataset.load_tracks()
     train_data = load_data(tracks, splits['train'])
-    model = InstrumentClassifier(seq_length=seq_length)
+    model = InstrumentClassifier(d_input=d_input, d_model=d_model, num_layers=3)
     model = model.to(device)
-    loss = torch.nn.CrossEntropyLoss()
-    optim = torch.optim.Adam(model.parameters(), lr=1e-3)
+    loss = torch.nn.BCEWithLogitsLoss()
+    optim = torch.optim.Adam(model.parameters(), lr=1e-5)
+    losses = []
 
     for epoch in range(epochs):
-
-        losses = []
+        model.train()
         for x, label in train_data:
-            for iter in range(random_samples):
-            # take a random sample
-                i = random.randint(0, len(x[-1]) - seq_length - 1)
-                x_slice = x[:,i:i+seq_length]
-                x_slice = x_slice.to(device)
-                y_pred = model(x_slice)
-                l = loss(y_pred, label)
-                l.backward()
-                losses.append(l.detach().item())
-                optim.step()
+            optim.zero_grad()
+            y_pred = model(x)
+            l = loss(y_pred, label)
+            l.backward()
+            losses.append(l.detach().item())
+            optim.step()
         print(f'epoch {epoch} - {sum(losses) / len(losses)}')
+    plt.plot(losses)
+    plt.show()
+    model.eval()
+    return model
+
+
+def test_irmas(model, tracks, splits):
+    test_data = load_data(tracks, splits['test'])
+    loss = torch.nn.BCEWithLogitsLoss()
+    losses = []
+
+    for x, label in test_data:
+        y_pred = model(x)
+        l = loss(y_pred, label)
+        losses.append(l.detach().item())
+    plt.plot(losses)
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -46,4 +60,10 @@ if __name__ == '__main__':
     if data_path_len <= 1:
         irmas.download()
         irmas.validate()
-    train_irmas(irmas)
+    splits = irmas.get_track_splits()
+    tracks = irmas.load_tracks()
+    model = train_irmas(tracks, splits)
+    now = datetime.now()
+    # filename = now.strftime("mi_classifier_%m-%d-%y_%H%M.th")
+    # save_model(model, filename)
+    test_irmas(model, tracks, splits)

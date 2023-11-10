@@ -2,17 +2,17 @@ import numpy as np
 from model import InstrumentClassifier, CNN
 
 INST_DICT = [
-    "cel", #388
-    "cla", #505
-    "flu", #451
-    "gac", #637
-    "gel", #760
-    "org", #682
-    "pia", #721
-    "sax", #626
-    "tru", #577
-    "vio", #580
-    "voi", #778
+    "cel", # 388 examples
+    "cla", # 505 examples
+    "flu", # 451 examples
+    "gac", # 637 examples
+    "gel", # 760 examples
+    "org", # 682 examples
+    "pia", # 721 examples
+    "sax", # 626 examples
+    "tru", # 577 examples
+    "vio", # 580 examples
+    "voi", # 778 examples
 ]
 
 

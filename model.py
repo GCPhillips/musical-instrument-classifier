@@ -5,8 +5,45 @@ import torch
 import torch.nn as nn
 
 
+class CNN(nn.Module):
+    def __init__(self, n_output=11):
+        super().__init__()
+        self.conv1 = CNNBlock(1, 32, 3, 2, 2)
+        self.conv2 = CNNBlock(32, 64, 3, 2, 2)
+        self.conv3 = CNNBlock(64, 128, 3, 2, 2)
+        self.flatten = nn.Flatten()
+        self.linear = nn.Linear(12672, n_output)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.flatten(x)
+        x = self.linear(x)
+
+        return x
+
+
+class CNNBlock(nn.Module):
+    def __init__(self, n_input, n_output, conv_kernel_size, pool_kernel_size, padding):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels=n_input,
+                              out_channels=n_output,
+                              kernel_size=conv_kernel_size,
+                              padding=padding)
+        self.relu = nn.ReLU()
+        self.maxpool = nn.MaxPool2d(kernel_size=pool_kernel_size)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        return x
+
+
 class InstrumentClassifier(nn.Module):
-    def __init__(self, d_input=4410, d_model=256, d_internal=128, num_classes=11, num_layers=1):
+    def __init__(self, d_input=132299, d_model=4410, d_internal=512, num_classes=11, num_layers=3):
         """
         :param d_input: the dimensions of the classifier input
         :param d_model: the dimensions of the input and output of the transformer

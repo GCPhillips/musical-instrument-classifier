@@ -1,25 +1,31 @@
 import math
 from collections import OrderedDict
 
+import numpy as np
 import torch
 import torch.nn as nn
 
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-class CNN(nn.Module):
-    def __init__(self, n_output=11):
+
+class CNNClassifier(nn.Module):
+    def __init__(self, n_output=8):
         super().__init__()
         self.conv1 = CNNBlock(1, 32, 3, 2, 2)
         self.conv2 = CNNBlock(32, 64, 3, 2, 2)
         self.conv3 = CNNBlock(64, 128, 3, 2, 2)
         self.flatten = nn.Flatten()
         self.linear = nn.Linear(12672, n_output)
+        self.logsoftmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
+        x = x[:,None,:,:]
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.flatten(x)
         x = self.linear(x)
+        x = self.logsoftmax(x)
 
         return x
 
@@ -42,8 +48,8 @@ class CNNBlock(nn.Module):
         return x
 
 
-class InstrumentClassifier(nn.Module):
-    def __init__(self, d_input=132299, d_model=4410, d_internal=512, num_classes=11, num_layers=3):
+class TransformerClassifier(nn.Module):
+    def __init__(self, d_input=20032, d_model=313, d_internal=128, num_classes=8, num_layers=1):
         """
         :param d_input: the dimensions of the classifier input
         :param d_model: the dimensions of the input and output of the transformer
@@ -56,15 +62,20 @@ class InstrumentClassifier(nn.Module):
 
         layers = OrderedDict()
         layers['initial'] = nn.Linear(d_input, d_model)
+        self.flatten = nn.Flatten()
         for i in range(num_layers):
             layers[f'transformer_layer_{str(i)}'] = TransformerLayer(d_model, d_internal)
         self.layers = nn.Sequential(layers)
         self.prediction = nn.Linear(d_model, num_classes)
-        self.sigmoid = nn.Sigmoid()
+        self.logsoftmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
-        # return self.sigmoid(self.prediction(self.layers(x)))
-        return self.prediction(self.layers(x))
+        x = self.flatten(x)
+        x = self.layers(x)
+        x = self.prediction(x)
+        x = self.logsoftmax(x)
+
+        return x
 
 
 class TransformerLayer(nn.Module):

@@ -7,6 +7,7 @@ import mirdata
 import torch.cuda
 import seaborn as sn
 import pandas as pd
+import time
 
 from model import CNNClassifier, TransformerClassifier
 from dataset import load_data
@@ -15,8 +16,8 @@ import matplotlib.pyplot as plt
 from utils import save_model, load_model, INST_DICT
 
 
-def train_model(tracks, splits, model, args: argparse.Namespace):
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+def train_model(tracks, splits, model, device, args: argparse.Namespace):
+
     epochs = args.epochs
     lr = args.lr
 
@@ -28,6 +29,7 @@ def train_model(tracks, splits, model, args: argparse.Namespace):
     loss = torch.nn.NLLLoss(weight=class_weights)
     optim = torch.optim.Adam(model.parameters(), lr=lr)
     global_losses = []
+    start = time.time()
     for epoch in range(epochs):
         losses = []
         model.train()
@@ -45,19 +47,21 @@ def train_model(tracks, splits, model, args: argparse.Namespace):
     plt.plot(global_losses)
     plt.show()
     model.eval()
+    print(f'Total training time in seconds: {time.time() - start}')
     return model
 
 
-def test_model(model, tracks, splits):
+def test_model(model, tracks, splits, device):
     """
     Tests model against testing data from dataset
     :param model: the model instance to test
     :param tracks: the tracks loaded from the mirdata dataset
     :param splits: the train/test splits as a list
     """
-    test_data = load_data(tracks, splits[1], training=False)
+    test_data = load_data(tracks, splits[1])
     preds = None
     targets = None
+    model = model.to(device)
 
     for x, label in test_data:
         y_pred = model(x).cpu().detach()
@@ -88,6 +92,7 @@ def print_report(preds, targets):
 
 def main(args: argparse.Namespace):
     dataset = mirdata.initialize('medley_solos_db', data_home='./data/medley_solos_db')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # .gitkeep file should already be there. Download data if it doesn't exist.
     data_path_len = len(os.listdir('./data/medley_solos_db'))
@@ -98,14 +103,18 @@ def main(args: argparse.Namespace):
     model_name = args.model
     if model_name == 'cnn':
         model = CNNClassifier()
-    elif model_name == 'transformer':
+    else:
         model = TransformerClassifier()
     tracks = dataset.load_tracks()
-    model = train_model(tracks, splits, model, args)
+    if args.test_model is not None:
+        model = load_model(model, args.test_model)
+        test_model(model, tracks, splits, device)
+        return
+    model = train_model(tracks, splits, model, device, args)
     now = datetime.now()
     filename = now.strftime("mi_classifier_%m-%d-%y_%H%M.th")
     save_model(model, filename)
-    test_model(model, tracks, splits)
+    test_model(model, tracks, splits, device)
 
 
 if __name__ == '__main__':
@@ -116,4 +125,5 @@ if __name__ == '__main__':
     parser.add_argument('--model', choices=['cnn', 'transformer'], default='cnn')
     parser.add_argument('--epochs', type=int, default=50)
     parser.add_argument('--lr', type=float, default=1e-5)
+    parser.add_argument('--test_model', type=str, default=None)
     main(parser.parse_args())

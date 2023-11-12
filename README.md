@@ -32,3 +32,5 @@ To train, run:
 `python3 train.py --model transformer --epochs 15 --lr 1e-4`
 
 where `--lr` is the learning rate (`1e-4` was found to be the best) and `--epochs` is the number of epochs.
+
+Once training is completed, the loss over training epochs should be displayed.  Also, a confusion matrix from the test set will be displayed along with the accuracy report printed to console.

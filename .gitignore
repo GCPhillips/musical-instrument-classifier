@@ -252,5 +252,6 @@ data/IRMAS-TrainingData/
 data/IRMAS-TestingData-Part1/
 data/IRMAS-TestingData-Part2/
 data/IRMAS-TestingData-Part3/
+data/medley_solos_db/
 
 trained_models/*.th

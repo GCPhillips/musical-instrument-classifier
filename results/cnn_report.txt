@@ -1,0 +1,14 @@
+                           precision    recall  f1-score   support
+
+                 clarinet       0.98      0.67      0.80       382
+distorted electric guitar       0.87      0.95      0.91       549
+            female singer       0.88      0.95      0.92       534
+                    flute       0.84      0.99      0.91      1047
+                    piano       1.00      0.92      0.96      1849
+          tenor saxophone       0.95      0.73      0.82       128
+                  trumpet       0.93      0.95      0.94       195
+                   violin       0.97      0.97      0.97      1716
+
+                 accuracy                           0.93      6400
+                macro avg       0.93      0.89      0.90      6400
+             weighted avg       0.94      0.93      0.93      6400

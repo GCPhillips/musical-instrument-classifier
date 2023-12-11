@@ -5,6 +5,8 @@ This is a musical instrument classifier that works with two different network ar
 - Convolutional Neural Network
 - Transformer
 
+The report over this project can be found [here](https://github.com/GCPhillips/musical-instrument-classifier/blob/main/report.pdf).
+
 ### Data
 
 The dataset used is the [Medley Solos DB](https://zenodo.org/records/1344103).  The instruments within the recordings are:

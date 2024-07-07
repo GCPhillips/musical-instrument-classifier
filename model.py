@@ -9,7 +9,7 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 
 class CNNClassifier(nn.Module):
-    def __init__(self, n_output=8):
+    def __init__(self, n_output=8, use_logsoftmax=True):
         """
         Convolutional Neural Network with 3 layers
 
@@ -22,6 +22,7 @@ class CNNClassifier(nn.Module):
         self.flatten = nn.Flatten()
         self.linear = nn.Linear(148608, n_output)
         self.logsoftmax = nn.LogSoftmax(dim=1)
+        self.use_logsoftmax = use_logsoftmax
 
     def forward(self, x):
         x = x[:,None,:,:]
@@ -30,7 +31,8 @@ class CNNClassifier(nn.Module):
         x = self.conv3(x)
         x = self.flatten(x)
         x = self.linear(x)
-        x = self.logsoftmax(x)
+        if self.use_logsoftmax:
+            x = self.logsoftmax(x)
 
         return x
 
@@ -54,7 +56,7 @@ class CNNBlock(nn.Module):
 
 
 class TransformerClassifier(nn.Module):
-    def __init__(self, num_classes=8, num_layers=2, num_attention_heads=12):
+    def __init__(self, num_classes=8, num_layers=2, num_attention_heads=12, use_logsoftmax=True):
         """
         Transformer classifier using HuggingFace ASTForAudioClassification
 
@@ -68,9 +70,13 @@ class TransformerClassifier(nn.Module):
         self.logsoftmax = nn.LogSoftmax(dim=1)
         config = ASTConfig(num_mel_bins=N_MELS, num_attention_heads=num_attention_heads, num_hidden_layers=num_layers, num_labels=num_classes)
         self.ast = ASTForAudioClassification(config)
+        self.use_logsoftmax = use_logsoftmax
 
     def forward(self, x):
         x = self.ast(x)
-        x = self.logsoftmax(x.logits)
+        if self.use_logsoftmax:
+            x = self.logsoftmax(x.logits)
+        else:
+            x = x.logits
 
         return x

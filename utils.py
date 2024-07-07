@@ -11,6 +11,20 @@ INST_DICT = [
     "violin"
 ]
 
+IRMAS_INST_DICT = [
+    "cel",
+    "cla",
+    "flu",
+    "gac",
+    "gel",
+    "org",
+    "pia",
+    "sax",
+    "tru",
+    "vio",
+    "voi",
+]
+
 
 def stereo_to_mono(audio: np.array) -> np.array:
     return np.mean(audio, axis=0)
